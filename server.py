@@ -7,8 +7,8 @@ import torch.optim as optim
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(18, 64)
-        self.fc2 = nn.Linear(64, 1)
+        self.fc1 = nn.Linear(1, 1)  # Adjust the input size to match the number of features
+        self.fc2 = nn.Linear(1, 1)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -21,7 +21,7 @@ ai_model = Net()
 # Function to train the AI model
 def train(game_data, winner):
     data = torch.tensor([float(x) for x in game_data.split(',')], dtype=torch.float32)
-    X = data.view(1, -1)  # Features
+    X = data.view(1, -1)  # Reshape the input data to (1, num_features)
     y = torch.tensor([[winner]], dtype=torch.float32)   # Labels
 
     criterion = nn.MSELoss()
@@ -34,7 +34,7 @@ def train(game_data, winner):
         loss = criterion(output, y)
         loss.backward()
         optimizer.step()
-
+        
 # Function to handle client connections
 def handle_client(client_socket):
     try:
