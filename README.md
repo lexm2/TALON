@@ -8,6 +8,7 @@ Before running the game, make sure you have the following dependencies installed
 
 - C++ compiler (e.g., g++, gcc)
 - Python 3
+- CMake
 
 ## Setup
 
@@ -21,7 +22,7 @@ Use green for linux/mac and red for windows.
 python -m venv .venv
 + source .venv/bin/activate
 - .venv\Scripts\activate
-pip install numpy==1.26.4 Flask==3.0.3 scikit-learn==1.5.0 blinker==1.8.2
+pip install torch Numpy
 ```
 When you're done working with the virtual environment, you can deactivate it by running the following command.
 `deactivate`

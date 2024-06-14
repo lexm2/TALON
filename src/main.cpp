@@ -1,7 +1,8 @@
-#include "Game.h"
+#include "AxisAndAllies.h"
 
-int main() {
-    Game game;
+int main()
+{
+    AxisAndAllies game;
     game.run();
     return 0;
 }

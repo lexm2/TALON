@@ -1,100 +1,65 @@
 import socket
-import random
-import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
-# Initialize the game board
-board = np.zeros((3, 3), dtype=int)
+# Define the neural network architecture
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.fc1 = nn.Linear(18, 64)
+        self.fc2 = nn.Linear(64, 1)
 
-# Function to check if a move is valid
-def is_valid_move(row, col):
-    return board[row][col] == 0
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
 
-# Function to check if the game is over
-def is_game_over():
-    # Check rows
-    for i in range(3):
-        if np.all(board[i] == board[i][0]) and board[i][0] != 0:
-            return True
-
-    # Check columns
-    for j in range(3):
-        if np.all(board[:, j] == board[0][j]) and board[0][j] != 0:
-            return True
-
-    # Check diagonals
-    if np.all(np.diag(board) == board[0][0]) and board[0][0] != 0:
-        return True
-    if np.all(np.diag(np.fliplr(board)) == board[0][2]) and board[0][2] != 0:
-        return True
-
-    return False
-
-# Function to evaluate the board state
-def evaluate_board():
-    # Check rows
-    for i in range(3):
-        if np.all(board[i] == 1):
-            return 1
-        elif np.all(board[i] == -1):
-            return -1
-
-    # Check columns
-    for j in range(3):
-        if np.all(board[:, j] == 1):
-            return 1
-        elif np.all(board[:, j] == -1):
-            return -1
-
-    # Check diagonals
-    if np.all(np.diag(board) == 1) or np.all(np.diag(np.fliplr(board)) == 1):
-        return 1
-    elif np.all(np.diag(board) == -1) or np.all(np.diag(np.fliplr(board)) == -1):
-        return -1
-
-    return 0
+# Initialize the AI model
+ai_model = Net()
 
 # Function to train the AI model
-def train(state, winner):
-    # Update the AI model based on the game state and winner
-    # You can implement your own training logic here
-    pass
+def train(game_data, winner):
+    data = torch.tensor([float(x) for x in game_data.split(',')], dtype=torch.float32)
+    X = data.view(1, -1)  # Features
+    y = torch.tensor([[winner]], dtype=torch.float32)   # Labels
 
-# Function to get the best move from the AI model
-def get_move(state):
-    # Use the AI model to predict the best move based on the current game state
-    # You can implement your own move prediction logic here
-    available_moves = [(i, j) for i in range(3) for j in range(3) if state[i][j] == ' ']
-    return random.choice(available_moves)
+    criterion = nn.MSELoss()
+    optimizer = optim.SGD(ai_model.parameters(), lr=0.01)
+
+    # Train
+    for _ in range(100):
+        optimizer.zero_grad()
+        output = ai_model(X)
+        loss = criterion(output, y)
+        loss.backward()
+        optimizer.step()
 
 # Function to handle client connections
 def handle_client(client_socket):
-    global board
+    try:
+        # Send the AI model to the client
+        model_data = []
+        for param in ai_model.parameters():
+            model_data.extend(param.data.numpy().flatten().tolist())
+        model_str = ','.join(map(str, model_data))
+        client_socket.send(model_str.encode('utf-8'))
 
-    while True:
-        # Receive the board state from the client
+        # Receive game data and winner from the client
         data = client_socket.recv(1024).decode('utf-8')
-
         if not data:
-            break
+            raise ConnectionResetError("Client closed the connection")
+        game_data, winner = data.split(',')
+        winner = int(winner)
 
-        if ',' in data:
-            # Received game state and winner for training
-            state, winner = data.split(',')
-            winner = int(winner)
-            train(state, winner)
-            break
-        else:
-            # Received board state for move prediction
-            board = np.array([list(data[i:i+3]) for i in range(0, 9, 3)])
-            board[board == 'X'] = 1
-            board[board == 'O'] = -1
-            board[board == ' '] = 0
+        # Train the AI model with the received game data and winner
+        train(game_data, winner)
 
-            move = get_move(board)
-            client_socket.send(str(move[0] * 3 + move[1]).encode('utf-8'))
-
-    client_socket.close()
-
+    except ConnectionResetError as e:
+        print(f"Client connection reset: {e}")
+    finally:
+        client_socket.close()
+        
 # Function to run the server
 def run_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

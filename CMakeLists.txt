@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(GameAI)
+project(TALON)
 
 # Set the C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -10,9 +10,9 @@ include_directories(include)
 
 # Source files
 set(SOURCES
-    src/Game.cpp
+    src/AxisAndAllies.cpp
     src/main.cpp
 )
 
 # Executable target
-add_executable(GameAI ${SOURCES})
+add_executable(TALON ${SOURCES})
