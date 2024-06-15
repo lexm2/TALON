@@ -24,6 +24,7 @@ private:
     int minimax(int depth, bool isMaximizing, int alpha, int beta, const std::vector<float> &model);
     void makeMove(int row, int col);
     void playGame();
+    void connectToServer();
     std::vector<float> getAIModel();
 
     std::string getBoardState();

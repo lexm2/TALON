@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <limits>
 
+int serverSocket;
+
 AxisAndAllies::AxisAndAllies()
 {
     resetBoard();
@@ -126,7 +128,6 @@ std::vector<float> AxisAndAllies::getAIModel()
     return model;
 }
 
-
 std::pair<int, int> AxisAndAllies::getMove()
 {
     std::vector<float> model = getAIModel();
@@ -169,7 +170,7 @@ std::pair<int, int> AxisAndAllies::getMove()
     return bestMove;
 }
 
-int AxisAndAllies::evaluateBoard(const std::vector<float>& model)
+int AxisAndAllies::evaluateBoard(const std::vector<float> &model)
 {
     std::string boardState = getBoardState();
     std::vector<float> features;
@@ -187,7 +188,7 @@ int AxisAndAllies::evaluateBoard(const std::vector<float>& model)
     return static_cast<int>(score);
 }
 
-int AxisAndAllies::minimax(int depth, bool isMaximizing, int alpha, int beta, const std::vector<float>& model)
+int AxisAndAllies::minimax(int depth, bool isMaximizing, int alpha, int beta, const std::vector<float> &model)
 {
     if (isGameOver() || depth == 5)
     {
@@ -254,6 +255,8 @@ void AxisAndAllies::makeMove(int row, int col)
 
 void AxisAndAllies::playGame()
 {
+    connectToServer();
+
     resetBoard();
 
     while (!isGameOver())
@@ -291,14 +294,14 @@ void AxisAndAllies::playGame()
 std::string AxisAndAllies::getBoardState()
 {
     std::string boardState;
-    for (const auto& row : board_occupied)
+    for (const auto &row : board_occupied)
     {
         for (bool cell : row)
         {
             boardState += cell ? "1" : "0";
         }
     }
-    for (const auto& row : board_player)
+    for (const auto &row : board_player)
     {
         for (bool cell : row)
         {
@@ -308,11 +311,9 @@ std::string AxisAndAllies::getBoardState()
     return boardState;
 }
 
-void AxisAndAllies::sendGameState(const std::string& state, int winner)
+void AxisAndAllies::connectToServer()
 {
-    int serverSocket, clientSocket;
-    struct sockaddr_in serverAddress, clientAddress;
-    char buffer[1024] = {0};
+    struct sockaddr_in serverAddress;
 
     // Create socket
     if ((serverSocket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -323,19 +324,28 @@ void AxisAndAllies::sendGameState(const std::string& state, int winner)
 
     // Set server address
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); // Replace with the server's IP address
     serverAddress.sin_port = htons(8888);
 
     // Connect to the server
     if (connect(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
     {
         std::cerr << "Connection failed" << std::endl;
+        close(serverSocket);
         exit(EXIT_FAILURE);
     }
 
+    std::cout << "Connected to the server" << std::endl;
+}
+
+void AxisAndAllies::sendGameState(const std::string &state, int winner)
+{
     // Send the game state and winner to the server
     std::string gameData = state + "," + std::to_string(winner);
-    send(serverSocket, gameData.c_str(), gameData.length(), 0);
-
-    close(serverSocket);
+    if (send(serverSocket, gameData.c_str(), gameData.length(), 0) < 0)
+    {
+        std::cerr << "Failed to send game data to the server" << std::endl;
+        close(serverSocket);
+        exit(EXIT_FAILURE);
+    }
 }

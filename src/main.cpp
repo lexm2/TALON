@@ -1,4 +1,5 @@
 #include "AxisAndAllies.h"
+#include <torch/torch.h>
 
 int main()
 {
