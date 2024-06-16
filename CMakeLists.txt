@@ -11,6 +11,8 @@ include_directories(include)
 
 set(SOURCES
     src/main.cpp
+    src/NeuralNetwork.cpp
+    src/Game/Game.cpp
 )
 
 # Executable target

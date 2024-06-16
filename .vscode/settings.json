@@ -71,6 +71,18 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "__bit_reference": "cpp",
+        "__string": "cpp",
+        "ios": "cpp",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "__tree": "cpp",
+        "queue": "cpp",
+        "stack": "cpp",
+        "cfenv": "cpp",
+        "codecvt": "cpp",
+        "__nullptr": "cpp",
+        "filesystem": "cpp"
     }
 }
