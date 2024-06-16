@@ -16,19 +16,29 @@ Before running the game, make sure you have the following dependencies installed
 
 2. Open a terminal or command prompt and navigate to the project's root directory.
 
-3. Create a Virtual Environment (venv):
-Use green for linux/mac and red for windows.
-```diff
-python -m venv .venv
-+ source .venv/bin/activate
-- .venv\Scripts\activate
-pip install torch Numpy
+3. Update and upgrade package manager and build essentials:
 ```
-When you're done working with the virtual environment, you can deactivate it by running the following command.
-`deactivate`
+sudo apt update
+sudo apt upgrade
+sudo apt install build-essential cmake
+```
 
-3. Navigate to the build directory and generate the build files using CMake:
+3. Install CUDA:
+Visit the NVIDIA CUDA website: https://developer.nvidia.com/cuda-downloads
+Select the appropriate operating system (Linux), architecture (x86_64), distribution (Ubuntu), and version (e.g., 22.04).
+
+Verify Installation
 ``` 
+nvcc --version
+```
+
+4. Install cuDNN:
+Visit the NVIDIA cuDNN website: https://developer.nvidia.com/cudnn
+Download the cuDNN library compatible with your CUDA version.
+
+5. Set up project:
+```
+mkdir build
 cd build
 cmake ..
 make
