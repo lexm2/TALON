@@ -25,7 +25,7 @@ class Agent:
     def train(self, state, action, reward, next_state, done, feedback):
         state_tensor = torch.FloatTensor(state).to(self.device)
         next_state_tensor = torch.FloatTensor(next_state).to(self.device)
-        feedback_tensor = torch.FloatTensor([feedback]).to(self.device)  # Convert feedback to tensor
+        feedback_tensor = torch.FloatTensor(feedback).to(self.device)  # Convert feedback to tensor
         q_values = self.model(state_tensor)
         target_q_values = q_values.clone()
 
@@ -38,7 +38,7 @@ class Agent:
         target_q_values[action - state[0]] = target_q_value  # Adjust index based on min_value
 
         # Incorporate feedback into the loss calculation
-        loss = torch.mean((q_values - target_q_values) ** 2 + feedback_tensor**2)
+        loss = torch.mean((q_values - target_q_values) ** 2 + (feedback_tensor[0] * (action - feedback_tensor[1])) ** 2)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()

@@ -8,17 +8,17 @@ import torch
 
 
 def main():
-    input_size = 4  # min_value, max_value, attempts_left, last_guess
+    input_size = 3  # min_value, max_value, attempts_left, last_guess
     hidden_sizes = [32]  # BS sizes
     output_size = 7
     learning_rate = 0.001
     discount_factor = 0.99
     epsilon = 0.1
-    num_episodes = 100000
+    num_episodes = 200000
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using " + device.type)
-    game = Game(min_value=0, max_value=6)
+    game = Game(min_value=0, max_value=6, num_episodes=num_episodes)
     model = DQN(input_size, hidden_sizes, output_size, device)
     agent = Agent(model, learning_rate, discount_factor, epsilon, device)
 
@@ -48,7 +48,6 @@ def main():
                 game.min_value,
                 game.max_value,
                 game.attempts_left,
-                game.last_guess,
             ]
             agent.train(state, action, reward, next_state, done, feedback)
             state = next_state
