@@ -13,4 +13,4 @@ else
 fi
 
 # Install the required packages
-pip install torch gym numpy
+pip install torch gym numpy matplotlib tqdm
