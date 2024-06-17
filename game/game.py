@@ -22,11 +22,12 @@ class Game:
     def step(self, guess):
         self.attempts_left -= 1
         self.last_guess = guess
-
+        print(str(guess) + " " + str(self.target_number))
         if guess == self.target_number:
-            reward = 10  # High reward for correct guess
+            reward = 2  # High reward for correct guess
             done = True
             feedback = 0  # Correct guess
+            
         else:
             # Calculate reward based on the distance from the target number
             distance = abs(guess - self.target_number)

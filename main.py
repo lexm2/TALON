@@ -14,8 +14,8 @@ def main():
     learning_rate = 0.001
     discount_factor = 0.99
     epsilon = 0.1
-    num_episodes = 1000
-
+    num_episodes = 10
+    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using " + device.type)
     game = Game(min_value=0, max_value=6)
@@ -29,6 +29,7 @@ def main():
         print("Loaded model parameters from checkpoint.")
     
     rewards = []
+    reward_avgs = []
 
     progress_bar = tqdm(range(num_episodes), desc="Training Episodes", total=num_episodes)
 
@@ -51,17 +52,19 @@ def main():
             episode_reward += reward
 
         rewards.append(episode_reward)
-        progress_bar.update(1)
+        progress_bar.update()
+        if (episode + 1) % (num_episodes / 100) == 0:
+            reward_avgs.append(str(sum(rewards) / len(rewards)))
         # print(f"Episode {episode + 1}: Attempts left = {game.attempts_left}")
         
     torch.save({'model_state_dict': model.state_dict()}, checkpoint_path)
     print("Saved model parameters to checkpoint.")
     
-    plt.plot(rewards)
+    plt.plot(reward_avgs)
     plt.xlabel("Episode")
-    plt.ylabel("Reward")
-    plt.title("Reward over Episodes")
-    plt.savefig("reward_plot.png")
+    plt.ylabel("Reward average")
+    plt.title("Reward average over Episodes")
+    #plt.savefig("reward_plot.png")
 
 
 if __name__ == "__main__":
