@@ -22,7 +22,7 @@ class Game:
     def step(self, guess):
         self.attempts_left -= 1
         self.last_guess = guess
-        print(str(guess) + " " + str(self.target_number))
+        #print(str(guess) + " " + str(self.target_number))
         if guess == self.target_number:
             reward = 2  # High reward for correct guess
             done = True

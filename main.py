@@ -9,25 +9,28 @@ import torch
 
 def main():
     input_size = 4  # min_value, max_value, attempts_left, last_guess
-    hidden_sizes = [128, 256, 128]  # BS sizes
+    hidden_sizes = [32]  # BS sizes
     output_size = 7
     learning_rate = 0.001
     discount_factor = 0.99
     epsilon = 0.1
-    num_episodes = 10
-    
+    num_episodes = 100000
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using " + device.type)
     game = Game(min_value=0, max_value=6)
     model = DQN(input_size, hidden_sizes, output_size, device)
     agent = Agent(model, learning_rate, discount_factor, epsilon, device)
 
-    checkpoint_path = 'chekcpoint.pt'
+    checkpoint_path = "chekcpoint.pt"
     if os.path.exists(checkpoint_path):
-        checkpoint = torch.load(checkpoint_path)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        print("Loaded model parameters from checkpoint.")
-    
+        try:
+            checkpoint = torch.load(checkpoint_path)
+            model.load_state_dict(checkpoint["model_state_dict"])
+            print("Loaded model parameters from checkpoint.")
+        except:
+            print("Failed to load model parameters from checkpoint. Will overwrite them.")
+
     rewards = []
     reward_avgs = []
 
@@ -54,17 +57,17 @@ def main():
         rewards.append(episode_reward)
         progress_bar.update()
         if (episode + 1) % (num_episodes / 100) == 0:
-            reward_avgs.append(str(sum(rewards) / len(rewards)))
+            reward_avgs.append(round(number=sum(rewards) / len(rewards), ndigits=7))
         # print(f"Episode {episode + 1}: Attempts left = {game.attempts_left}")
-        
-    torch.save({'model_state_dict': model.state_dict()}, checkpoint_path)
+
+    torch.save({"model_state_dict": model.state_dict()}, checkpoint_path)
     print("Saved model parameters to checkpoint.")
-    
+
     plt.plot(reward_avgs)
     plt.xlabel("Episode")
     plt.ylabel("Reward average")
     plt.title("Reward average over Episodes")
-    #plt.savefig("reward_plot.png")
+    plt.savefig("reward_plot.png")
 
 
 if __name__ == "__main__":
