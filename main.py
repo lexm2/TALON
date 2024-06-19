@@ -80,7 +80,7 @@ def main():
         if (episode + 1) % window_size == 0:
             reward_avgs.append(round(sum(rewards) / window_size, ndigits=7))
             attempts_avgs.append(round(sum(attempts) / window_size, ndigits=7))
-        if (episode + 1) % args.save == 0 and not num_episodes <= args.save:
+        if (episode + 1) % args.save == 0 and not num_episodes <= args.save and num_episodes != episode + 1:
             save_model_and_test_inputs(model, checkpoint_path, output_file=output_file)
         # print(f"Episode {episode + 1}: Attempts left = {game.attempts_left}")
 
@@ -95,22 +95,27 @@ def save_model_and_test_inputs(model, checkpoint_path, output_file=None):
     print("Saved model parameters to checkpoint.")
 
     if output_file is not None:
-        output_file.write("Model Architecture:\n")
-        output_file.write(str(model) + "\n")
 
         test_inputs = [
             [0, 6, 6] + [-1] * 6 + [0] * 6,  # Test input 1
-            [0, 6, 4, 3] + [-1] * 5 + [-1] + [0] * 5,  # Test input 2
-            [0, 6, 2, 5, 3] + [-1] * 4 + [-1, 1] + [0] * 4,  # Test input 3
+            [0, 6, 5, 3] + [-1] * 5 + [-1] + [0] * 5,  # Test input 2
+            [0, 6, 4, 3, 1] + [-1] * 4 + [-1, 1] + [0] * 4,  # Test input 3
+        ]
+        
+        expected_outputs = [
+            3,
+            1,
+            2,  # Test input 3
         ]
 
         output_file.write("\nInput Tests:\n")
         for i, test_input in enumerate(test_inputs):
             test_input_tensor = torch.FloatTensor(test_input).to(device)
             output = model(test_input_tensor)
+            argmax = torch.max(output).item()
             output_file.write(f"Test Input {i+1}: {test_input}\n")
-            output_file.write(f"Output: {output.tolist()}\n")
-            output_file.write(f"Expected: {output.tolist()}\n")
+            output_file.write(f"Output: {argmax}\n")
+            output_file.write(f"Expected: {expected_outputs[i]}\n")
 
 
 def plot_reward_graph(reward_avgs, attempts_avgs):
