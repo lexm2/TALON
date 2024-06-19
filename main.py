@@ -22,7 +22,7 @@ def main():
     output_size = 7
     learning_rate = 0.002
     discount_factor = 0.99
-    epsilon = 0.8
+    epsilon = 0.5
     model = DQN(input_size, hidden_sizes, output_size, device)
     agent = Agent(model, learning_rate, discount_factor, epsilon, device)
     num_episodes = args.episodes
@@ -32,9 +32,9 @@ def main():
     reward_avgs = []
     attempts_avgs = []
     num_processes = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(processes=num_processes)
+    # pool = multiprocessing.Pool(processes=num_processes)
 
-    if args.write:
+    if args.write or args.test:
         output_file = open("output.txt", "w")
     else:
         output_file = None
@@ -47,13 +47,14 @@ def main():
             checkpoint = torch.load(checkpoint_path)
             model.load_state_dict(checkpoint["model_state_dict"])
             print("Loaded model parameters from checkpoint.")
-            if args.manual:
-                attempts, last_guess, higher_lower = args.manual
-                print(agent.select_action([game.max_value, game.max_value, attempts, last_guess, higher_lower]))
+            if args.test:
+                save_model_and_test_inputs(model, output_file=output_file, save_model=False)
+                print("Saved to {} and tested.".format(checkpoint_path))
                 return
         except:
-            if args.manual:
-                print("Failed to load model, train the model before running the manual mode.")
+            if args.test:
+                print("Failed to load model, train the model before testing.")
+                return
             else:
                 print("Failed to load model parameters from checkpoint. Will overwrite them.")
 
@@ -90,29 +91,29 @@ def main():
     output_file.close()
 
 
-def save_model_and_test_inputs(model, checkpoint_path, output_file=None):
-    torch.save({"model_state_dict": model.state_dict()}, checkpoint_path)
-    print("Saved model parameters to checkpoint.")
+def save_model_and_test_inputs(model, checkpoint_path=None, output_file=None, save_model=True):
+    if save_model:
+        torch.save({"model_state_dict": model.state_dict()}, checkpoint_path)
+        print("Saved model parameters to checkpoint.")
 
     if output_file is not None:
-
         test_inputs = [
-            [0, 6, 6] + [-1] * 6 + [0] * 6,  # Test input 1
-            [0, 6, 5, 3] + [-1] * 5 + [-1] + [0] * 5,  # Test input 2
-            [0, 6, 4, 3, 1] + [-1] * 4 + [-1, 1] + [0] * 4,  # Test input 3
+            [0, 6, 6] + [-1] * 6 + [0] * 6,
+            [0, 6, 5, 3] + [-1] * 5 + [-1] + [0] * 5,
+            [0, 6, 4, 3, 1] + [-1] * 4 + [-1, 1] + [0] * 4,
         ]
-        
+
         expected_outputs = [
             3,
             1,
-            2,  # Test input 3
+            2,
         ]
 
         output_file.write("\nInput Tests:\n")
         for i, test_input in enumerate(test_inputs):
             test_input_tensor = torch.FloatTensor(test_input).to(device)
             output = model(test_input_tensor)
-            argmax = torch.max(output).item()
+            argmax = torch.argmax(output).item()
             output_file.write(f"Test Input {i+1}: {test_input}\n")
             output_file.write(f"Output: {argmax}\n")
             output_file.write(f"Expected: {expected_outputs[i]}\n")
@@ -147,14 +148,7 @@ def parse_args():
         "-e", "--episodes", type=int, default=100000, help="Number of training episodes (default: 100000)"
     )
     parser.add_argument("-s", "--save", type=int, default=10000, help="How often to make saves")
-    parser.add_argument(
-        "--manual",
-        "-m",
-        type=int,
-        nargs=3,
-        metavar=("ATTEMPTS", "LASTGUESS", "HIGHERLOWER"),
-        help="Manualy run the neural network with the given parameters",
-    )
+    parser.add_argument("--test", "-t", action="store_true", help="Write output to a file")
     parser.add_argument("--write", "-w", action="store_true", help="Write output to a file")
     parser.add_argument("--overwrite", "-o", action="store_true", help="Overwrite the save file")
     return parser.parse_args()
