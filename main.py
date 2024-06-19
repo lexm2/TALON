@@ -26,7 +26,7 @@ def main():
     model = DQN(input_size, hidden_sizes, output_size, device)
     agent = Agent(model, learning_rate, discount_factor, epsilon, device)
     num_episodes = args.episodes
-    window_size = num_episodes / 100
+    window_size = int(num_episodes / 100)
     rewards = deque(maxlen=window_size)
     attempts = deque(maxlen=window_size)
     reward_avgs = []
@@ -78,8 +78,8 @@ def main():
         attempts.append(game.max_attempts - game.attempts_left)
         progress_bar.update()
         if (episode + 1) % window_size == 0:
-            reward_avgs.append(round(calculate_rolling_average(rewards, window_size), ndigits=7))
-            attempts_avgs.append(round(calculate_rolling_average(attempts, window_size), ndigits=7))
+            reward_avgs.append(round(sum(rewards) / window_size, ndigits=7))
+            attempts_avgs.append(round(sum(attempts) / window_size, ndigits=7))
         if (episode + 1) % args.save == 0 and not num_episodes <= args.save:
             save_model_and_test_inputs(model, checkpoint_path, output_file=output_file)
         # print(f"Episode {episode + 1}: Attempts left = {game.attempts_left}")
@@ -153,13 +153,6 @@ def parse_args():
     parser.add_argument("--write", "-w", action="store_true", help="Write output to a file")
     parser.add_argument("--overwrite", "-o", action="store_true", help="Overwrite the save file")
     return parser.parse_args()
-
-
-def calculate_rolling_average(values, window_size):
-    if len(values) < window_size:
-        return sum(values) / len(values)
-    else:
-        return sum(values[-int(window_size) :]) / window_size
 
 
 if __name__ == "__main__":
