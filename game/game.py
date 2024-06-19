@@ -26,17 +26,17 @@ class Game:
         self.target_number = random.randint(self.min_value, self.max_value)
         self.attempts_left = self.max_attempts
         self.guess1 = -1
-        self.guess1eval = -1
+        self.guess1eval = 0
         self.guess2 = -1
-        self.guess2eval = -1
+        self.guess2eval = 0
         self.guess3 = -1
-        self.guess3eval = -1
+        self.guess3eval = 0
         self.guess4 = -1
-        self.guess4eval = -1
+        self.guess4eval = 0
         self.guess5 = -1
-        self.guess5eval = -1
+        self.guess5eval = 0
         self.guess6 = -1
-        self.guess6eval = -1
+        self.guess6eval = 0
         self.last_guess = -1
         
         state = [
